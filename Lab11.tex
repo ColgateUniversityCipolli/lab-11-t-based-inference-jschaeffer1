@@ -150,6 +150,9 @@ do to collect the data for Figure 2(g). Note that you only need the
 \end{alltt}
 \end{kframe}
 \end{knitrout}
+To collect the data, I had to first download the source data from the research paper. I could then save the desired variables as .csv files (further and closer), before combining them all into a single tibble. Generating the difference between further and closer just required using \texttt{mutate()}. With these variables, it would be possible to generate Figure 2(g) - the closer values would be on the left, further values on the right, and the difference would represent the lines between them.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUMMARIZE DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -258,8 +261,203 @@ correction of their $p$-values. I'm waiting to hear back from them via email!
 hypothesis testing plots for each part of the previous question.
 \begin{enumerate}
   \item Question 4, part(a).
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{ggdat.t} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}\hldef{=}\hlkwd{seq}\hldef{(}\hlopt{-}\hlnum{5}\hldef{,}\hlnum{5}\hldef{,}\hlkwc{length.out}\hldef{=}\hlnum{1000}\hldef{))|>}
+\hlkwd{mutate}\hldef{(}\hlkwc{pdf.null} \hldef{=} \hlkwd{dt}\hldef{(t,} \hlkwc{df}\hldef{=n}\hlopt{-}\hlnum{1}\hldef{))}
+
+
+\hlcom{#Making plot for closer}
+\hlcom{#Pulling t value}
+\hldef{obs_t}\hlkwb{=}\hldef{closer_t_test}\hlopt{$}\hldef{statistic[[}\hlnum{1}\hldef{]]}
+
+\hldef{ggdat.obs} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}    \hldef{= obs_t,}
+                  \hlkwc{y}    \hldef{=} \hlnum{0}\hldef{)} \hlcom{# to plot on x-axis}
+
+\hlcom{# Resampling to approximate the sampling distribution }
+\hlcom{# on the data}
+\hldef{R} \hlkwb{<-} \hlnum{1000}
+\hldef{resamples} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}\hldef{=}\hlkwd{numeric}\hldef{(R))}
+\hlkwa{for}\hldef{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hldef{R)\{}
+\hldef{curr.sample} \hlkwb{<-} \hlkwd{sample}\hldef{(}\hlkwc{x}\hldef{=fig2_tibble}\hlopt{$}\hldef{Closer,}
+                      \hlkwc{size}\hldef{=n,}
+                      \hlkwc{replace}\hldef{=T)}
+\hldef{resamples}\hlopt{$}\hldef{t[i]} \hlkwb{=} \hldef{(}\hlkwd{mean}\hldef{(curr.sample)}\hlopt{-}\hldef{mu0)}\hlopt{/}\hldef{(}\hlkwd{sd}\hldef{(curr.sample)}\hlopt{/}\hlkwd{sqrt}\hldef{(n))}
+\hldef{\}}
+
+
+\hldef{s} \hlkwb{<-} \hlkwd{sd}\hldef{(fig2_tibble}\hlopt{$}\hldef{Closer)}
+\hldef{t.breaks} \hlkwb{<-} \hlkwd{c}\hldef{(}\hlopt{-}\hlnum{5}\hldef{,} \hlnum{0}\hldef{,}
+            \hlkwd{qt}\hldef{(}\hlnum{0.95}\hldef{,} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{),} \hlnum{5}\hldef{,}  \hlcom{# rejection region (right)}
+            \hldef{obs_t)}                  \hlcom{# t-statistic observed}
+\hldef{xbar.breaks} \hlkwb{<-} \hldef{t.breaks} \hlopt{*} \hldef{s}\hlopt{/}\hldef{(}\hlkwd{sqrt}\hldef{(n))} \hlopt{+} \hldef{mu0}
+
+
+
+\hlcom{# Create Plot}
+\hldef{closer_plot} \hlkwb{=} \hlkwd{ggplot}\hldef{()} \hlopt{+}
+\hlcom{# null distribution}
+\hlkwd{geom_line}\hldef{(}\hlkwc{data}\hldef{=ggdat.t,}
+          \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{y}\hldef{=pdf.null))}\hlopt{+}
+\hlkwd{geom_hline}\hldef{(}\hlkwc{yintercept}\hldef{=}\hlnum{0}\hldef{)}\hlopt{+}
+\hlcom{# rejection regions}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{>=}\hlkwd{qt}\hldef{(}\hlnum{0.95}\hldef{,} \hlkwc{df}\hldef{=n}\hlopt{-}\hlnum{1}\hldef{)),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"grey"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.5}\hldef{)}\hlopt{+}
+\hlcom{# plot p-value (not visible)}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{>=}\hldef{t.stat),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"reg"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.25}\hldef{)}\hlopt{+}
+\hlcom{# plot observation point}
+\hlkwd{geom_point}\hldef{(}\hlkwc{data}\hldef{=ggdat.obs,} \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{y}\hldef{=y),} \hlkwc{color}\hldef{=}\hlsng{"red"}\hldef{)}\hlopt{+}
+\hlcom{# Resampling Distribution}
+\hlkwd{stat_density}\hldef{(}\hlkwc{data}\hldef{=resamples,}
+             \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t),}
+             \hlkwc{geom}\hldef{=}\hlsng{"line"}\hldef{,} \hlkwc{color}\hldef{=}\hlsng{"grey"}\hldef{)}\hlopt{+}
+\hlcom{# clean up aesthetics}
+\hlkwd{theme_bw}\hldef{()}\hlopt{+}
+\hlkwd{ylab}\hldef{(}\hlsng{"Density"}\hldef{)}\hlopt{+}
+\hlkwd{scale_x_continuous}\hldef{(}\hlsng{"t"}\hldef{,}
+                   \hlkwc{breaks} \hldef{=} \hlkwd{round}\hldef{(t.breaks,}\hlnum{2}\hldef{),}
+                   \hlkwc{sec.axis} \hldef{=} \hlkwd{sec_axis}\hldef{(}\hlopt{~}\hldef{.,}
+                                       \hlkwc{name} \hldef{=} \hlkwd{bquote}\hldef{(}\hlkwd{bar}\hldef{(x)),}
+                                       \hlkwc{breaks} \hldef{= t.breaks,}
+                                       \hlkwc{labels} \hldef{=} \hlkwd{round}\hldef{(xbar.breaks,}\hlnum{2}\hldef{)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  
   \item Question 4, part(b).
+  
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#Making plot for further}
+\hlcom{#Pulling t value}
+\hldef{obs_t}\hlkwb{=}\hldef{further_t_test}\hlopt{$}\hldef{statistic[[}\hlnum{1}\hldef{]]}
+
+\hldef{ggdat.obs} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}    \hldef{= obs_t,}
+                  \hlkwc{y}    \hldef{=} \hlnum{0}\hldef{)} \hlcom{# to plot on x-axis}
+
+\hlcom{# Resampling to approximate the sampling distribution }
+\hlcom{# on the data}
+\hldef{R} \hlkwb{<-} \hlnum{1000}
+\hldef{resamples} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}\hldef{=}\hlkwd{numeric}\hldef{(R))}
+\hlkwa{for}\hldef{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hldef{R)\{}
+\hldef{curr.sample} \hlkwb{<-} \hlkwd{sample}\hldef{(}\hlkwc{x}\hldef{=fig2_tibble}\hlopt{$}\hldef{Further,}
+                      \hlkwc{size}\hldef{=n,}
+                      \hlkwc{replace}\hldef{=T)}
+\hldef{resamples}\hlopt{$}\hldef{t[i]} \hlkwb{=} \hldef{(}\hlkwd{mean}\hldef{(curr.sample)}\hlopt{-}\hldef{mu0)}\hlopt{/}\hldef{(}\hlkwd{sd}\hldef{(curr.sample)}\hlopt{/}\hlkwd{sqrt}\hldef{(n))}
+\hldef{\}}
+
+\hldef{s} \hlkwb{<-} \hlkwd{sd}\hldef{(fig2_tibble}\hlopt{$}\hldef{Further)}
+\hldef{t.breaks} \hlkwb{<-} \hlkwd{c}\hldef{(}\hlopt{-}\hlnum{5}\hldef{,} \hlkwd{qt}\hldef{(}\hlnum{0.05}\hldef{,} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{),} \hlcom{# rejection region (left)}
+            \hlnum{0}\hldef{,} \hlnum{5}\hldef{,}
+            \hldef{obs_t)}                  \hlcom{# t-statistic observed}
+\hldef{xbar.breaks} \hlkwb{<-} \hldef{t.breaks} \hlopt{*} \hldef{s}\hlopt{/}\hldef{(}\hlkwd{sqrt}\hldef{(n))} \hlopt{+} \hldef{mu0}
+
+
+\hlcom{# Create Plot}
+\hldef{further_plot} \hlkwb{=} \hlkwd{ggplot}\hldef{()} \hlopt{+}
+\hlcom{# null distribution}
+\hlkwd{geom_line}\hldef{(}\hlkwc{data}\hldef{=ggdat.t,}
+          \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{y}\hldef{=pdf.null))}\hlopt{+}
+\hlkwd{geom_hline}\hldef{(}\hlkwc{yintercept}\hldef{=}\hlnum{0}\hldef{)}\hlopt{+}
+\hlcom{# rejection regions}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{<=}\hlkwd{qt}\hldef{(}\hlnum{0.05}\hldef{,} \hlkwc{df}\hldef{=n}\hlopt{-}\hlnum{1}\hldef{)),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"grey"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.5}\hldef{)}\hlopt{+}
+\hlcom{# plot p-value (not visible)}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{>=}\hldef{t.stat),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"reg"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.25}\hldef{)}\hlopt{+}
+\hlcom{# plot observation point}
+\hlkwd{geom_point}\hldef{(}\hlkwc{data}\hldef{=ggdat.obs,} \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{y}\hldef{=y),} \hlkwc{color}\hldef{=}\hlsng{"red"}\hldef{)}\hlopt{+}
+\hlcom{# Resampling Distribution}
+\hlkwd{stat_density}\hldef{(}\hlkwc{data}\hldef{=resamples,}
+             \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t),}
+             \hlkwc{geom}\hldef{=}\hlsng{"line"}\hldef{,} \hlkwc{color}\hldef{=}\hlsng{"grey"}\hldef{)}\hlopt{+}
+\hlcom{# clean up aesthetics}
+\hlkwd{theme_bw}\hldef{()}\hlopt{+}
+\hlkwd{ylab}\hldef{(}\hlsng{"Density"}\hldef{)}\hlopt{+}
+\hlkwd{scale_x_continuous}\hldef{(}\hlsng{"t"}\hldef{,}
+                   \hlkwc{breaks} \hldef{=} \hlkwd{round}\hldef{(t.breaks,}\hlnum{2}\hldef{),}
+                   \hlkwc{sec.axis} \hldef{=} \hlkwd{sec_axis}\hldef{(}\hlopt{~}\hldef{.,}
+                                       \hlkwc{name} \hldef{=} \hlkwd{bquote}\hldef{(}\hlkwd{bar}\hldef{(x)),}
+                                       \hlkwc{breaks} \hldef{= t.breaks,}
+                                       \hlkwc{labels} \hldef{=} \hlkwd{round}\hldef{(xbar.breaks,}\hlnum{2}\hldef{)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
   \item Question 4, part(c).
+  
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#Making plot for difference}
+\hlcom{#Pulling t value}
+\hldef{obs_t}\hlkwb{=}\hldef{difference_t_test}\hlopt{$}\hldef{statistic[[}\hlnum{1}\hldef{]]}
+
+
+\hldef{ggdat.obs} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}    \hldef{= obs_t,}
+                  \hlkwc{y}    \hldef{=} \hlnum{0}\hldef{)} \hlcom{# to plot on x-axis}
+
+\hlcom{# Resampling to approximate the sampling distribution }
+\hlcom{# on the data}
+\hldef{R} \hlkwb{<-} \hlnum{1000}
+\hldef{resamples} \hlkwb{<-} \hlkwd{tibble}\hldef{(}\hlkwc{t}\hldef{=}\hlkwd{numeric}\hldef{(R))}
+\hlkwa{for}\hldef{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hldef{R)\{}
+\hldef{curr.sample} \hlkwb{<-} \hlkwd{sample}\hldef{(}\hlkwc{x}\hldef{=fig2_tibble}\hlopt{$}\hldef{Difference,}
+                      \hlkwc{size}\hldef{=n,}
+                      \hlkwc{replace}\hldef{=T)}
+\hldef{resamples}\hlopt{$}\hldef{t[i]} \hlkwb{=} \hldef{(}\hlkwd{mean}\hldef{(curr.sample)}\hlopt{-}\hldef{mu0)}\hlopt{/}\hldef{(}\hlkwd{sd}\hldef{(curr.sample)}\hlopt{/}\hlkwd{sqrt}\hldef{(n))}
+\hldef{\}}
+
+\hldef{s} \hlkwb{<-} \hlkwd{sd}\hldef{(fig2_tibble}\hlopt{$}\hldef{Difference)}
+\hldef{t.breaks} \hlkwb{<-} \hlkwd{c}\hldef{(}\hlopt{-}\hlnum{5}\hldef{,} \hlkwd{qt}\hldef{(}\hlnum{0.025}\hldef{,} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{),} \hlcom{# rejection region (left)}
+            \hlnum{0}\hldef{,}
+            \hlkwd{qt}\hldef{(}\hlnum{0.975}\hldef{,} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{),} \hlnum{5}\hldef{,}  \hlcom{# rejection region (right)}
+            \hldef{obs_t)}                  \hlcom{# t-statistic observed}
+\hldef{xbar.breaks} \hlkwb{<-} \hldef{t.breaks} \hlopt{*} \hldef{s}\hlopt{/}\hldef{(}\hlkwd{sqrt}\hldef{(n))} \hlopt{+} \hldef{mu0}
+
+
+\hlcom{# Create Plot}
+\hldef{difference_plot} \hlkwb{=} \hlkwd{ggplot}\hldef{()} \hlopt{+}
+\hlcom{# null distribution}
+\hlkwd{geom_line}\hldef{(}\hlkwc{data}\hldef{=ggdat.t,}
+          \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{y}\hldef{=pdf.null))}\hlopt{+}
+\hlkwd{geom_hline}\hldef{(}\hlkwc{yintercept}\hldef{=}\hlnum{0}\hldef{)}\hlopt{+}
+\hlcom{# rejection regions}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{>=}\hlkwd{qt}\hldef{(}\hlnum{0.975}\hldef{,} \hlkwc{df}\hldef{=n}\hlopt{-}\hlnum{1}\hldef{)),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"grey"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.5}\hldef{)}\hlopt{+}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{<=}\hlkwd{qt}\hldef{(}\hlnum{0.025}\hldef{,} \hlkwc{df}\hldef{=n}\hlopt{-}\hlnum{1}\hldef{)),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"grey"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.5}\hldef{)}\hlopt{+}
+\hlcom{# plot p-value (not visible)}
+\hlkwd{geom_ribbon}\hldef{(}\hlkwc{data}\hldef{=}\hlkwd{subset}\hldef{(ggdat.t, t}\hlopt{>=}\hldef{t.stat),}
+            \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{ymin}\hldef{=}\hlnum{0}\hldef{,} \hlkwc{ymax}\hldef{=pdf.null),}
+            \hlkwc{fill}\hldef{=}\hlsng{"reg"}\hldef{,} \hlkwc{alpha}\hldef{=}\hlnum{0.25}\hldef{)}\hlopt{+}
+\hlcom{# plot observation point}
+\hlkwd{geom_point}\hldef{(}\hlkwc{data}\hldef{=ggdat.obs,} \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t,} \hlkwc{y}\hldef{=y),} \hlkwc{color}\hldef{=}\hlsng{"red"}\hldef{)}\hlopt{+}
+\hlcom{# Resampling Distribution}
+\hlkwd{stat_density}\hldef{(}\hlkwc{data}\hldef{=resamples,}
+             \hlkwd{aes}\hldef{(}\hlkwc{x}\hldef{=t),}
+             \hlkwc{geom}\hldef{=}\hlsng{"line"}\hldef{,} \hlkwc{color}\hldef{=}\hlsng{"grey"}\hldef{)}\hlopt{+}
+\hlcom{# clean up aesthetics}
+\hlkwd{theme_bw}\hldef{()}\hlopt{+}
+\hlkwd{ylab}\hldef{(}\hlsng{"Density"}\hldef{)}\hlopt{+}
+\hlkwd{scale_x_continuous}\hldef{(}\hlsng{"t"}\hldef{,}
+                   \hlkwc{breaks} \hldef{=} \hlkwd{round}\hldef{(t.breaks,}\hlnum{2}\hldef{),}
+                   \hlkwc{sec.axis} \hldef{=} \hlkwd{sec_axis}\hldef{(}\hlopt{~}\hldef{.,}
+                                       \hlkwc{name} \hldef{=} \hlkwd{bquote}\hldef{(}\hlkwd{bar}\hldef{(x)),}
+                                       \hlkwc{breaks} \hldef{= t.breaks,}
+                                       \hlkwc{labels} \hldef{=} \hlkwd{round}\hldef{(xbar.breaks,}\hlnum{2}\hldef{)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  
 \end{enumerate}
 \end{enumerate}
 

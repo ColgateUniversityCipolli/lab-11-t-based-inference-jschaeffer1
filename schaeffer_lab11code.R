@@ -39,7 +39,7 @@ dopamine_summ = fig2_tibble |>
     closer     = mean(Closer),
     difference = mean(Difference)
   )
-view(dopamine_summ)
+#view(dopamine_summ)
 
 
 ################################################
