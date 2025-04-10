@@ -89,6 +89,34 @@ conduct a power analysis. How many observations would the researchers
 need to detect a moderate-to-large effect ($d=0.65$) when using 
 $\alpha=0.05$ and default power (0.80) for a two-sided one sample 
 $t$ test.
+
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#Power analysis}
+\hlkwd{pwr.t.test}\hldef{(}\hlkwc{d}\hldef{=}\hlnum{0.65}\hldef{,}
+           \hlkwc{sig.level}\hldef{=}\hlnum{0.05}\hldef{,}
+           \hlkwc{type}\hldef{=}\hlsng{"one.sample"}\hldef{,}
+           \hlkwc{alternative} \hldef{=} \hlsng{"two.sided"}\hldef{,}
+           \hlkwc{power}\hldef{=}\hlnum{0.8}\hldef{)}
+\end{alltt}
+\begin{verbatim}
+## 
+##      One-sample t test power calculation 
+## 
+##               n = 20.58039
+##               d = 0.65
+##       sig.level = 0.05
+##           power = 0.8
+##     alternative = two.sided
+\end{verbatim}
+\begin{alltt}
+\hlcom{#n=20.58 - need at least 21 observations}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+ 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % COLLECT DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,6 +126,30 @@ do to collect the data for Figure 2(g). Note that you only need the
 \texttt{closer\_vals} and \texttt{further\_vals}. Ensure to 
 \texttt{mutate()} the data to get a difference 
 (e.g., \texttt{closer\_vals - further\_vals}).
+
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#Pulling data from figure 2}
+\hldef{fig2_further} \hlkwb{=} \hlkwd{read_csv}\hldef{(}\hlsng{"further_data.csv"}\hldef{,} \hlkwc{col_names} \hldef{=} \hlsng{"Further"}\hldef{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Rows: 25 Columns: 1\\\#\# -- Column specification --------------------------------------------------------\\\#\# Delimiter: "{},"{}\\\#\# dbl (1): Further\\\#\# \\\#\# i Use `spec()` to retrieve the full column specification for this data.\\\#\# i Specify the column types or set `show\_col\_types = FALSE` to quiet this message.}}\begin{alltt}
+\hldef{fig2_closer} \hlkwb{=} \hlkwd{read_csv}\hldef{(}\hlsng{"closer_data.csv"}\hldef{,} \hlkwc{col_names} \hldef{=} \hlsng{"Closer"}\hldef{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Rows: 25 Columns: 1\\\#\# -- Column specification --------------------------------------------------------\\\#\# Delimiter: "{},"{}\\\#\# dbl (1): Closer\\\#\# \\\#\# i Use `spec()` to retrieve the full column specification for this data.\\\#\# i Specify the column types or set `show\_col\_types = FALSE` to quiet this message.}}\begin{alltt}
+\hlcom{#Combining 2 values into a single tibble}
+\hldef{fig2_tibble} \hlkwb{=} \hlkwd{bind_cols}\hldef{(fig2_further, fig2_closer)}
+
+\hlcom{#Mutating a new column to show the difference between columns}
+\hldef{fig2_tibble} \hlkwb{=} \hldef{fig2_tibble |>}
+  \hlkwd{mutate}\hldef{(}\hlkwc{Difference} \hldef{= Closer}\hlopt{-}\hldef{Further)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUMMARIZE DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,8 +179,77 @@ like: ($t=23.99$, $p<0.0001$; $g=1.34$; 95\% CI: 4.43, 4.60).\\
 correction of their $p$-values. I'm waiting to hear back from them via email!
 \begin{enumerate}
   \item ``The close responses differed significantly from 0 ($p=1.63 \times 10^{-8}$).''
+
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hldef{mu0} \hlkwb{<-} \hlnum{0}
+\hlcom{#Calculating for closer (right-sided)}
+\hlcom{#Manually calculating statistics}
+\hldef{x} \hlkwb{<-} \hldef{fig2_tibble}\hlopt{$}\hldef{Closer}
+\hldef{xbar} \hlkwb{<-} \hlkwd{mean}\hldef{(x)}
+\hldef{s} \hlkwb{<-} \hlkwd{sd}\hldef{(x)}
+\hldef{n} \hlkwb{<-} \hlkwd{length}\hldef{(x)}
+\hldef{t.stat} \hlkwb{<-} \hldef{(xbar} \hlopt{-} \hldef{mu0)}\hlopt{/}\hldef{(s}\hlopt{/}\hlkwd{sqrt}\hldef{(n))}
+\hldef{p.val} \hlkwb{<-} \hlkwd{pt}\hldef{(}\hlkwc{q}\hldef{=}\hlopt{-}\hlkwd{abs}\hldef{(t.stat),} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{)}
+
+\hlcom{#Calculating hedges value}
+\hldef{closer_hedges_vals} \hlkwb{=} \hlkwd{hedges_g}\hldef{(}\hlkwc{x} \hldef{= x,} \hlkwc{mu} \hldef{= mu0,} \hlkwc{alternative} \hldef{=} \hlsng{"greater"}\hldef{)}
+
+\hlcom{#having t.test calculate values automatically and ensuring they match}
+\hldef{closer_t_test} \hlkwb{=} \hlkwd{t.test}\hldef{(}\hlkwc{x}\hldef{=x,} \hlkwc{mu} \hldef{= mu0,} \hlkwc{alternative} \hldef{=} \hlsng{"greater"}\hldef{)}
+\hldef{closer_CI} \hlkwb{=} \hlkwd{t.test}\hldef{(}\hlkwc{x}\hldef{=x)}\hlopt{$}\hldef{conf.int} \hlcom{#Caluclating the CI using a two sided test}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  
   \item ``The far responses differed significantly from 0 ($p=5.17 \times 10^{-8}$).''
+  
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#Calculating for further (left sided)}
+\hlcom{#Manually calculating statistics}
+\hldef{x} \hlkwb{<-} \hldef{fig2_tibble}\hlopt{$}\hldef{Further}
+\hldef{xbar} \hlkwb{<-} \hlkwd{mean}\hldef{(x)}
+\hldef{s} \hlkwb{<-} \hlkwd{sd}\hldef{(x)}
+\hldef{n} \hlkwb{<-} \hlkwd{length}\hldef{(x)}
+\hldef{t.stat} \hlkwb{<-} \hldef{(xbar} \hlopt{-} \hldef{mu0)}\hlopt{/}\hldef{(s}\hlopt{/}\hlkwd{sqrt}\hldef{(n))}
+\hldef{p.val} \hlkwb{<-} \hlkwd{pt}\hldef{(}\hlkwc{q}\hldef{=}\hlopt{-}\hlkwd{abs}\hldef{(t.stat),} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{)}
+
+\hlcom{#Calculating hedges value}
+\hldef{further_hedges_vals} \hlkwb{=} \hlkwd{hedges_g}\hldef{(}\hlkwc{x} \hldef{= x,} \hlkwc{mu} \hldef{= mu0,} \hlkwc{alternative} \hldef{=} \hlsng{"less"}\hldef{)}
+
+\hlcom{#having t.test calculate values automatically and ensuring they match}
+\hldef{further_t_test} \hlkwb{=} \hlkwd{t.test}\hldef{(}\hlkwc{x}\hldef{=x,} \hlkwc{mu} \hldef{= mu0,} \hlkwc{alternative} \hldef{=} \hlsng{"less"}\hldef{)}
+\hldef{further_CI} \hlkwb{=} \hlkwd{t.test}\hldef{(}\hlkwc{x}\hldef{=x)}\hlopt{$}\hldef{conf.int} \hlcom{#Caluclating the CI using a two sided test}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  
+  
   \item ``The difference between populations was significant ($p=1.04 \times10^{-8}$).''
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{#Calculating for difference (two-sided)}
+
+\hlcom{#Manually calculating statistics}
+\hldef{x} \hlkwb{<-} \hldef{fig2_tibble}\hlopt{$}\hldef{Difference}
+\hldef{xbar} \hlkwb{<-} \hlkwd{mean}\hldef{(x)}
+\hldef{s} \hlkwb{<-} \hlkwd{sd}\hldef{(x)}
+\hldef{n} \hlkwb{<-} \hlkwd{length}\hldef{(x)}
+\hldef{t.stat} \hlkwb{<-} \hldef{(xbar} \hlopt{-} \hldef{mu0)}\hlopt{/}\hldef{(s}\hlopt{/}\hlkwd{sqrt}\hldef{(n))}
+\hldef{p.val} \hlkwb{<-} \hlnum{2}\hlopt{*}\hlkwd{pt}\hldef{(}\hlkwc{q}\hldef{=}\hlopt{-}\hlkwd{abs}\hldef{(t.stat),} \hlkwc{df} \hldef{= n}\hlopt{-}\hlnum{1}\hldef{)}
+
+\hlcom{#Calculating hedges value}
+\hldef{difference_hedges_vals} \hlkwb{=} \hlkwd{hedges_g}\hldef{(}\hlkwc{x} \hldef{= x,} \hlkwc{mu} \hldef{= mu0,} \hlkwc{alternative} \hldef{=} \hlsng{"two.sided"}\hldef{)}
+
+\hlcom{#having t.test calculate values automatically and ensuring they match}
+\hldef{difference_t_test} \hlkwb{=} \hlkwd{t.test}\hldef{(}\hlkwc{x}\hldef{=x,} \hlkwc{mu} \hldef{= mu0,} \hlkwc{alternative} \hldef{=} \hlsng{"two.sided"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
 \end{enumerate}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CONDUCT THE TESTS
