@@ -29,7 +29,6 @@ fig2_tibble = fig2_tibble |>
 
 #view(fig2_tibble)
 
-
 ################################################
 ###                 PART 3                   ###
 ################################################
@@ -40,6 +39,33 @@ dopamine_summ = fig2_tibble |>
     difference = mean(Difference)
   )
 #view(dopamine_summ)
+
+#Summarizing further
+further_summary = ggplot() + 
+  geom_histogram(aes(fig2_tibble$Further, y=after_stat(density))) +
+  theme_bw() +
+  geom_hline(yintercept=0) +
+  xlab("Dopamine Compared to Baseline") +
+  ylab("Density")
+
+#Summarizing closer
+closer_summary = ggplot() + 
+  geom_histogram(aes(fig2_tibble$Closer, y=after_stat(density))) +
+  theme_bw() +
+  geom_hline(yintercept=0) +
+  xlab("Dopamine Compared to Baseline") +
+  ylab("Density")
+
+#Summarizing difference
+difference_summary = ggplot() + 
+  geom_histogram(aes(fig2_tibble$Difference, y=after_stat(density))) +
+  theme_bw() +
+  geom_hline(yintercept=0) +
+  xlab("Dopamine Change") +
+  ylab("Density")
+
+
+
 
 
 ################################################

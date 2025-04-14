@@ -161,6 +161,37 @@ To collect the data, I had to first download the source data from the research p
   \item Summarize the further data. Do the data suggest that
    dopamine in the brains of young zebra finches decreases when
    they sing further away?
+   
+\begin{knitrout}\scriptsize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{ggplot}\hldef{()} \hlopt{+}
+  \hlkwd{geom_histogram}\hldef{(}\hlkwd{aes}\hldef{(fig2_tibble}\hlopt{$}\hldef{Further,} \hlkwc{y}\hldef{=}\hlkwd{after_stat}\hldef{(density)))} \hlopt{+}
+  \hlkwd{theme_bw}\hldef{()} \hlopt{+}
+  \hlkwd{geom_hline}\hldef{(}\hlkwc{yintercept}\hldef{=}\hlnum{0}\hldef{)} \hlopt{+}
+  \hlkwd{xlab}\hldef{(}\hlsng{"Dopamine Compared to Baseline"}\hldef{)} \hlopt{+}
+  \hlkwd{ylab}\hldef{(}\hlsng{"Density"}\hldef{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{figre}[H]
+\begin{center}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# `stat\_bin()` using `bins = 30`. Pick better value with `binwidth`.}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-4-1} 
+\end{knitrout}
+\caption{A histogram of birds singing further from adult song}
+\label{plot1}
+\end{center
+\end{figure}
+
+
+
+
    \item Summarize the closer data. Do the data suggest that
    dopamine in the brains of young zebra finches increases when
    they sing closer to their adult song?

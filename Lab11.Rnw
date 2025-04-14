@@ -89,6 +89,29 @@ To collect the data, I had to first download the source data from the research p
   \item Summarize the further data. Do the data suggest that
    dopamine in the brains of young zebra finches decreases when
    they sing further away?
+   
+<<further_summary, eval=FALSE, size='scriptsize'>>=
+ggplot() + 
+  geom_histogram(aes(fig2_tibble$Further, y=after_stat(density))) +
+  theme_bw() +
+  geom_hline(yintercept=0) +
+  xlab("Dopamine Compared to Baseline") +
+  ylab("Density")
+@
+
+\begin{figre}[H]
+\begin{center}
+<<echo=FALSE, warning=FALSE, fig.dim=c(3,2)>>=
+<<further_summary>>
+@
+\caption{A histogram of birds singing further from adult song}
+\label{plot1}
+\end{center
+\end{figure}
+
+
+
+
    \item Summarize the closer data. Do the data suggest that
    dopamine in the brains of young zebra finches increases when
    they sing closer to their adult song?
